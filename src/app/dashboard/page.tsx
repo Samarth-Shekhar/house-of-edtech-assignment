@@ -33,6 +33,14 @@ type CandidateStageCount = {
   _count: { stage: number };
 };
 
+type CandidateRecent = {
+  id: string;
+  name: string;
+  stage: string;
+  createdAt: Date;
+  job: { title: string };
+};
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -42,7 +50,6 @@ export default async function DashboardPage() {
     openJobs,
     totalCandidates,
     avgScore,
-    recentCandidates,
     stageCounts,
     recentJobs,
   ] = await Promise.all([
@@ -50,13 +57,6 @@ export default async function DashboardPage() {
     prisma.job.count({ where: { status: "OPEN" } }),
     prisma.candidate.count(),
     prisma.candidate.aggregate({ _avg: { overallScore: true } }),
-    prisma.candidate.findMany({
-      take: 6,
-      orderBy: { createdAt: "desc" },
-      include: {
-        job: { select: { title: true } },
-      },
-    }),
     prisma.candidate.groupBy({
       by: ["stage"],
       _count: { stage: true },
@@ -69,6 +69,14 @@ export default async function DashboardPage() {
       },
     }),
   ]);
+
+  const recentCandidates = (await prisma.candidate.findMany({
+    take: 6,
+    orderBy: { createdAt: "desc" },
+    include: {
+      job: { select: { title: true } },
+    },
+  })) as CandidateRecent[];
 
   const stageCountMap: Record<string, number> = {};
   stageCounts.forEach((s: CandidateStageCount) => {
