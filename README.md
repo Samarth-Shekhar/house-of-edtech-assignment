@@ -95,5 +95,4 @@ The application handles four specific roles to match standard hiring operations:
 ## Footer / Submission Details
 As requested by the submission guidelines, the following links are featured on the footer:
 - **Developer Name**: Samarth Shekhar
-- **GitHub Profile**: [samarth-shekhar](https://github.com/samarth-shekhar)
-- **LinkedIn Profile**: [samarth-shekhar](www.linkedin.com/in/samarth-shekhar-185ba311a)
+- **LinkedIn Profile**: [samarth-shekhar](https://www.linkedin.com/in/samarth-shekhar-185ba311a)
