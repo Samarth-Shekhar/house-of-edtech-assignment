@@ -62,7 +62,7 @@ TOP CANDIDATES:
 ${job.candidates
   .slice(0, 10)
   .map(
-    (c, i) =>
+    (c: { name: string; overallScore: number | null; stage: string }, i) =>
       `${i + 1}. ${c.name} (Score: ${c.overallScore ?? "Not analyzed"}, Stage: ${c.stage})`
   )
   .join("\n")}
