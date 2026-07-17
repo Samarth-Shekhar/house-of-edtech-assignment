@@ -6,6 +6,18 @@ import { Users, Briefcase } from "lucide-react";
 import { formatEnumLabel, getStageColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
+type CandidateRow = {
+  id: string;
+  name: string;
+  email: string;
+  stage: string;
+  overallScore: number | null;
+  createdAt: Date;
+  job: { id: string; title: string; department: string };
+  aiAnalysis?: { overallScore: number | null };
+  _count: { evaluations: number };
+};
+
 export default async function CandidatesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -19,12 +31,16 @@ export default async function CandidatesPage() {
       _count: { select: { evaluations: true } },
     },
     orderBy: { createdAt: "desc" },
-  });
+  }) as CandidateRow[];
 
   const reviewedCount = candidates.filter((c) => c._count.evaluations > 0).length;
   const avgScore = candidates.length
     ? Math.round(
-        candidates.reduce((sum, c) => sum + (c.aiAnalysis?.overallScore ?? 0), 0) / candidates.length
+        candidates.reduce<number>(
+          (sum, c: { aiAnalysis?: { overallScore: number | null } }) =>
+            sum + (c.aiAnalysis?.overallScore ?? 0),
+          0
+        ) / candidates.length
       )
     : 0;
 
