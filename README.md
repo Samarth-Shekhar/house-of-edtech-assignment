@@ -71,7 +71,7 @@ npx prisma db push
 ```bash
 npm run dev
 ```
-Open [(https://samarthhouseofedtechassignment.netlify.app/)]((https://samarthhouseofedtechassignment.netlify.app/)] to view the application.
+Open [(https://samarthhouseofedtechassignment.netlify.app/)] to view the application.
 
 ---
 
