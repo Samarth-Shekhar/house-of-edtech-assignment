@@ -13,6 +13,18 @@ import { formatEnumLabel } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { hasPermission } from "@/lib/authorization";
 
+type JobRow = {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  status: string;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  createdAt: Date;
+  _count: { candidates: number };
+};
+
 export default async function JobsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -28,10 +40,10 @@ export default async function JobsPage() {
       _count: { select: { candidates: true } },
     },
     orderBy: { createdAt: "desc" },
-  });
+  }) as JobRow[];
 
-  const openCount = jobs.filter((job) => job.status === "OPEN").length;
-  const draftCount = jobs.filter((job) => job.status === "DRAFT").length;
+  const openCount = jobs.filter((job: JobRow) => job.status === "OPEN").length;
+  const draftCount = jobs.filter((job: JobRow) => job.status === "DRAFT").length;
 
   return (
     <div className="animate-fade-in space-y-6">
