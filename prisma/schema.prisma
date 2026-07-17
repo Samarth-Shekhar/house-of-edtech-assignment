@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── MODELS ─────────────────────────────────────────────
+
+model User {
+  id             String       @id @default(cuid())
+  name           String
+  email          String       @unique
+  hashedPassword String
+  role           String       @default("RECRUITER")
+  avatar         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  createdJobs    Job[]        @relation("JobCreator")
+  evaluations    Evaluation[]
+  auditLogs      AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Job {
+  id              String     @id @default(cuid())
+  title           String
+  department      String
+  location        String
+  type            String     // FULL_TIME, PART_TIME, CONTRACT, REMOTE
+  salaryMin       Int?
+  salaryMax       Int?
+  description     String
+  requirements    String     // Store JSON as string in SQLite
+  status          String     @default("DRAFT")
+  biasScore       Float?     // AI-generated bias score (0-100, lower is better)
+  biasFlags       String?    // Store JSON as string
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  creatorId       String
+  creator         User       @relation("JobCreator", fields: [creatorId], references: [id])
+  candidates      Candidate[]
+
+  @@index([status])
+  @@index([creatorId])
+  @@index([createdAt])
+}
+
+model Candidate {
+  id              String        @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  linkedIn        String?
+  resumeText      String
+  stage           String        @default("APPLIED")
+  overallScore    Float?        // AI-computed overall match score (0-100)
+  stageUpdatedAt  DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  jobId           String
+  job             Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  aiAnalysis      AIAnalysis?
+  evaluations     Evaluation[]
+  interviewQuestions InterviewQuestion[]
+
+  @@unique([email, jobId])
+  @@index([jobId])
+  @@index([stage])
+  @@index([overallScore])
+}
+
+model AIAnalysis {
+  id              String   @id @default(cuid())
+  skillMatch      String   // Store JSON as string
+  skillScore      Float    // 0-100
+  experienceScore Float    // 0-100
+  educationScore  Float    // 0-100
+  overallScore    Float    // 0-100 weighted average
+  strengths       String   // Comma separated list of strengths
+  gaps            String   // Comma separated list of concerns/gaps
+  summary         String   // AI narrative summary
+  rawResponse     String?  // Store JSON as string
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  candidateId     String   @unique
+  candidate       Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+}
+
+model Evaluation {
+  id              String           @id @default(cuid())
+  rating          String
+  technicalScore  Int              // 1-5
+  communicationScore Int           // 1-5
+  cultureFitScore Int              // 1-5
+  experienceScore Int              // 1-5
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  candidateId     String
+  candidate       Candidate        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  reviewerId      String
+  reviewer        User             @relation(fields: [reviewerId], references: [id])
+
+  @@unique([candidateId, reviewerId])
+  @@index([candidateId])
+  @@index([reviewerId])
+}
+
+model InterviewQuestion {
+  id              String   @id @default(cuid())
+  question        String
+  category        String   // TECHNICAL, BEHAVIORAL, SITUATIONAL
+  targetSkill     String?  // Which skill this question probes
+  difficulty      String   // EASY, MEDIUM, HARD
+  createdAt       DateTime @default(now())
+
+  // Relations
+  candidateId     String
+  candidate       Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, AI_ANALYSIS
+  entity      String   // JOB, CANDIDATE, EVALUATION, USER
+  entityId    String?
+  details     String?  // Store JSON as string
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
