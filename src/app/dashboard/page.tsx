@@ -28,6 +28,11 @@ import Link from "next/link";
 import { formatEnumLabel, getStageColor } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
+type CandidateStageCount = {
+  stage: string;
+  _count: { stage: number };
+};
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -66,7 +71,7 @@ export default async function DashboardPage() {
   ]);
 
   const stageCountMap: Record<string, number> = {};
-  stageCounts.forEach((s) => {
+  stageCounts.forEach((s: CandidateStageCount) => {
     stageCountMap[s.stage] = s._count.stage;
   });
 
