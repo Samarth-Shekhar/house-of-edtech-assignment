@@ -41,6 +41,16 @@ type CandidateRecent = {
   job: { title: string };
 };
 
+type JobRecent = {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  status: string;
+  createdAt: Date;
+  _count: { candidates: number };
+};
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -51,7 +61,6 @@ export default async function DashboardPage() {
     totalCandidates,
     avgScore,
     stageCounts,
-    recentJobs,
   ] = await Promise.all([
     prisma.job.count(),
     prisma.job.count({ where: { status: "OPEN" } }),
@@ -61,14 +70,15 @@ export default async function DashboardPage() {
       by: ["stage"],
       _count: { stage: true },
     }),
-    prisma.job.findMany({
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      include: {
-        _count: { select: { candidates: true } },
-      },
-    }),
   ]);
+
+  const recentJobs = (await prisma.job.findMany({
+    take: 5,
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { candidates: true } },
+    },
+  })) as JobRecent[];
 
   const recentCandidates = (await prisma.candidate.findMany({
     take: 6,
