@@ -71,7 +71,7 @@ npx prisma db push
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Open [http://localhost:3000]((https://samarthhouseofedtechassignment.netlify.app/)) to view the application.
 
 ---
 
